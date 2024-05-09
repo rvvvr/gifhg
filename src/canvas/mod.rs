@@ -1,9 +1,23 @@
-use gpui::{Element, ImageData, IntoElement, PaintQuad, Render, RenderOnce};
-use image::{ImageBuffer, Rgb};
+use std::sync::Arc;
 
-#[derive(IntoElement)]
+use gpui::{deferred, div, px, Corners, Element, ElementId, Empty, ImageData, Interactivity, IntoElement, LayoutId, Model, PaintQuad, Render, RenderOnce, Style};
+use image::{Bgra, ImageBuffer, Rgb};
+
+pub mod context;
+
+
 pub struct Canvas {
     // a LOT of shit will need to go here.
+    id: ElementId,
+}
+
+impl Canvas {
+    pub fn new() -> Self {
+	println!("shmop");
+	Self {
+	    id: ElementId::from("shmeep"),
+	}
+    }
 }
 
 impl Element for Canvas {
@@ -12,7 +26,8 @@ impl Element for Canvas {
     type PrepaintState = ();
 
     fn id(&self) -> Option<gpui::ElementId> {
-        todo!()
+	println!("shmoop");
+        Some(self.id.clone())
     }
 
     fn request_layout(
@@ -20,7 +35,8 @@ impl Element for Canvas {
         id: Option<&gpui::GlobalElementId>,
         cx: &mut gpui::WindowContext,
     ) -> (gpui::LayoutId, Self::RequestLayoutState) {
-        todo!()
+	println!("shmerp");
+        (cx.request_layout(&Style::default(), []), ())
     }
 
     fn prepaint(
@@ -30,7 +46,7 @@ impl Element for Canvas {
         request_layout: &mut Self::RequestLayoutState,
         cx: &mut gpui::WindowContext,
     ) -> Self::PrepaintState {
-        todo!()
+        println!("shmourt");
     }
 
     fn paint(
@@ -41,12 +57,15 @@ impl Element for Canvas {
         prepaint: &mut Self::PrepaintState,
         cx: &mut gpui::WindowContext,
     ) {
-        let buffer = ImageBuffer::from_pixel(100, 100, Rgb::from([0u8, 0, 0]));
+        let buffer = ImageBuffer::from_pixel(1000, 1000, Bgra::from([0u8, 0, 0, 0xFF]));
+	cx.paint_image(bounds, Corners::all(px(300.)), Arc::new(ImageData::new(buffer)), false).unwrap();
     }
 }
 
-impl RenderOnce for Canvas {
-    fn render(self, cx: &mut gpui::WindowContext) -> impl IntoElement {
-	self
+impl IntoElement for Canvas {
+    type Element = Self;
+
+    fn into_element(self) -> Self::Element {
+        self
     }
 }
