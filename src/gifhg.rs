@@ -1,9 +1,9 @@
-use gpui::{div, rgb, Global, Model, ParentElement, Render, Styled};
+use gpui::{deferred, div, rgb, Global, InteractiveText, Model, ParentElement, Render, Styled, StyledText};
 
-use crate::canvas::{context::CanvasContext, Canvas};
+use crate::{canvas::{context::CanvasContext, Canvas}, ImportImage};
 
 pub struct GifhgState {
-    canvas: Model<CanvasContext>,
+    pub canvas: Model<CanvasContext>,
 }
 
 impl GifhgState {
@@ -32,12 +32,20 @@ impl Render for Gifhg {
     fn render(&mut self, cx: &mut gpui::ViewContext<Self>) -> impl gpui::prelude::IntoElement {
 	println!("shmeep");
         div()
-            .flex()
+            .flex_col()
             .size_full()
 	    .justify_center()
             .items_center()
             .text_xl()
+            .bg(rgb(0xabcdef))
             .text_color(rgb(0xffffff))
-            .child(Canvas::new())
+            .child(
+		div()
+		    .bg(rgb(0xff0000))
+		    .text_color(rgb(0xffffff))
+		    .child(InteractiveText::new("shmeep", StyledText::new("shmeep")).on_click(vec![0..100000], |_, cx| {
+			cx.dispatch_action(Box::new(ImportImage));
+		    })))
+            .child(Canvas::new().size_full())
     }
 }

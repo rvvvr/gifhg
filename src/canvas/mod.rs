@@ -1,14 +1,20 @@
 use std::sync::Arc;
 
-use gpui::{deferred, div, px, Corners, Element, ElementId, Empty, ImageData, Interactivity, IntoElement, LayoutId, Model, PaintQuad, Render, RenderOnce, Style};
+use gpui::{deferred, div, px, Bounds, Context, Corners, Element, ElementId, Empty, ImageData, Interactivity, IntoElement, LayoutId, Model, PaintQuad, Point, Refineable, Render, RenderOnce, Style, StyleRefinement, Styled};
 use image::{Bgra, ImageBuffer, Rgb};
 
+use crate::gifhg::GifhgState;
+
+use self::layers::LayerKind;
+
 pub mod context;
+pub mod layers;
 
 
 pub struct Canvas {
     // a LOT of shit will need to go here.
     id: ElementId,
+    style: StyleRefinement,
 }
 
 impl Canvas {
@@ -16,6 +22,7 @@ impl Canvas {
 	println!("shmop");
 	Self {
 	    id: ElementId::from("shmeep"),
+	    style: StyleRefinement::default(),
 	}
     }
 }
@@ -36,7 +43,9 @@ impl Element for Canvas {
         cx: &mut gpui::WindowContext,
     ) -> (gpui::LayoutId, Self::RequestLayoutState) {
 	println!("shmerp");
-        (cx.request_layout(&Style::default(), []), ())
+	let mut style = Style::default();
+	style.refine(&self.style);
+        (cx.request_layout(&style, []), ())
     }
 
     fn prepaint(
@@ -46,7 +55,7 @@ impl Element for Canvas {
         request_layout: &mut Self::RequestLayoutState,
         cx: &mut gpui::WindowContext,
     ) -> Self::PrepaintState {
-        println!("shmourt");
+        println!("{bounds:?}");
     }
 
     fn paint(
@@ -57,8 +66,10 @@ impl Element for Canvas {
         prepaint: &mut Self::PrepaintState,
         cx: &mut gpui::WindowContext,
     ) {
-        let buffer = ImageBuffer::from_pixel(1000, 1000, Bgra::from([0u8, 0, 0, 0xFF]));
-	cx.paint_image(bounds, Corners::all(px(300.)), Arc::new(ImageData::new(buffer)), false).unwrap();
+	let state = cx.global::<GifhgState>();
+	let ctx = cx.read_model(&state.canvas, move |model, context| {
+	   model.layers.iter().cloned().collect::<Vec<_>>()
+	});
     }
 }
 
@@ -67,5 +78,11 @@ impl IntoElement for Canvas {
 
     fn into_element(self) -> Self::Element {
         self
+    }
+}
+
+impl Styled for Canvas {
+    fn style(&mut self) -> &mut gpui::StyleRefinement {
+        &mut self.style
     }
 }
